@@ -21,6 +21,13 @@ public:
 	// Dominance of the allele: 0 = recessive (Blue/Green), 10 = dominant (Brown)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 DominanceIndex;
+
+	// Default constructor
+	FGeneticData()
+	{
+		DominanceIndex = 0;
+		Material = TSoftObjectPtr<UMaterialInstance>(FSoftObjectPath(TEXT("/Game/MetaHumans/Fathers/Dax/MID_MI_EyeRefractive_Inst_L_0.MID_MI_EyeRefractive_Inst_L_0")));
+	}
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
