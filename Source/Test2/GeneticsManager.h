@@ -9,7 +9,7 @@
 #include "GeneticsManager.generated.h"
 
 USTRUCT(BlueprintType)
-struct FGeneticData : public FTableRowBase
+struct FEyeGeneticData : public FTableRowBase
 {
 	GENERATED_BODY()
 
@@ -23,10 +23,27 @@ public:
 	int32 DominanceIndex;
 
 	// Default constructor
-	FGeneticData()
+	FEyeGeneticData()
 	{
 		DominanceIndex = 0;
 		Material = TSoftObjectPtr<UMaterialInstance>(FSoftObjectPath(TEXT("/Game/MetaHumans/Fathers/Dax/MID_MI_EyeRefractive_Inst_L_0.MID_MI_EyeRefractive_Inst_L_0")));
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FSkinGeneticData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	// Exact value in the gradient texture, where 0 is the lightest skin tone and 1 is the darkest
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float MelaninIndex;
+
+	// Default constructor
+	FSkinGeneticData()
+	{
+		MelaninIndex = 0.5f;
 	}
 };
 
@@ -48,8 +65,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Genetics")
 	UDataTable* EyeGeneticsTable;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genetics")
+	UDataTable* SkinGeneticsTable;
+
 	UFUNCTION(BlueprintCallable, Category="Genetics")
 	void ApplyEyeColorGenetics(FName FatherPhenotype, FName MotherPhenotype); 
+
+	UFUNCTION(BlueprintCallable, Category = "Genetics")
+	void ApplySkinToneGenetics(FName FatherPhenotype, FName MotherPhenotype);
 
 private:
 	FName DetermineEyeColor(int32 DomA, FName NameA, int32 DomB, FName NameB);

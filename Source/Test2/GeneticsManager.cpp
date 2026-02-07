@@ -10,7 +10,7 @@ void UGeneticsManager::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UGeneticsManager::ApplyEyeColorGenetics(FName FatherPhenotype, FName MotherPhenotype)
+void UGeneticsManager::ApplyEyeColorGenetics(FName FatherEyeColorID, FName MotherEyeColorID)
 {
 	if (!MetaHumanInstance)
 	{
@@ -24,24 +24,22 @@ void UGeneticsManager::ApplyEyeColorGenetics(FName FatherPhenotype, FName Mother
 	}
 
 	// Retrieve genetic data for both parents
-	static const FString ContextString(TEXT("Genetics Context"));
-	FGeneticData* FatherData = EyeGeneticsTable->FindRow<FGeneticData>(FatherPhenotype, ContextString);
-	FGeneticData* MotherData = EyeGeneticsTable->FindRow<FGeneticData>(MotherPhenotype, ContextString);
+	FEyeGeneticData* FatherData = EyeGeneticsTable->FindRow<FEyeGeneticData>(FatherEyeColorID, TEXT("Genetics Eye Context"));
+	FEyeGeneticData* MotherData = EyeGeneticsTable->FindRow<FEyeGeneticData>(MotherEyeColorID, TEXT("Genetics Eye Context"));
 
 	if (!FatherData || !MotherData)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ERROR: Could not find genetic data '%s' or '%s' in the table"), *FatherPhenotype.ToString(), *MotherPhenotype.ToString());
+		UE_LOG(LogTemp, Error, TEXT("Genetics: Could not find eye data for '%s' or '%s'"), *FatherEyeColorID.ToString(), *MotherEyeColorID.ToString());
 		return;
 	}
 
 	// Determine child's eye color based on parents' dominance
-	FName ChildEyeColor = DetermineEyeColor(FatherData->DominanceIndex, FatherPhenotype, MotherData->DominanceIndex, MotherPhenotype);
+	FName ChildEyeColor = DetermineEyeColor(FatherData->DominanceIndex, FatherEyeColorID, MotherData->DominanceIndex, MotherEyeColorID);
 
 	// Apply the determined eye color to the MetaHuman instance
 	MetaHumanInstance->SetIntParameterSelectedOption(FString("EyeColor"), FString(ChildEyeColor.ToString()));
-	MetaHumanInstance->UpdateSkeletalMeshAsync(true, true);
 
-	UE_LOG(LogTemp, Warning, TEXT("Applied eye color '%s' to MetaHuman based on parents '%s' and '%s'"), *ChildEyeColor.ToString(), *FatherPhenotype.ToString(), *MotherPhenotype.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("Genetics: Applied eye '%s' (Parents: %s + %s)"), *ChildEyeColor.ToString(), *FatherEyeColorID.ToString(), *MotherEyeColorID.ToString());
 }
 
 FName UGeneticsManager::DetermineEyeColor(int32 DomA, FName NameA, int32 DomB, FName NameB)
@@ -62,6 +60,27 @@ FName UGeneticsManager::DetermineEyeColor(int32 DomA, FName NameA, int32 DomB, F
 		return NameA; 
 	} else {
 		return NameB; 
+	}
+}
+
+
+void UGeneticsManager::ApplySkinToneGenetics(FName FatherSkinID, FName MotherSkinID)
+{
+	if (!MetaHumanInstance || !SkinGeneticsTable) return;
+
+	// Retrieve genetic data for both parents
+	FSkinGeneticData* FatherData = SkinGeneticsTable->FindRow<FSkinGeneticData>(FatherSkinID, TEXT("Genetics Skin Context"));
+	FSkinGeneticData* MotherData = SkinGeneticsTable->FindRow<FSkinGeneticData>(MotherSkinID, TEXT("Genetics Skin Context"));
+
+	// Determine child's skin tone based on parents' dominance
+	
+	if (FatherData && MotherData) {
+		float ChildMelaninIndex = (FatherData->MelaninIndex + MotherData->MelaninIndex) / 2.0f;
+		float Mutation = FMath::FRandRange(-0.05f, 0.05f);
+		ChildMelaninIndex = FMath::Clamp(ChildMelaninIndex + Mutation, 0.0f, 1.0f);
+
+		MetaHumanInstance->SetFloatParameterSelectedOption(FString("SkinTone"), ChildMelaninIndex);
+		UE_LOG(LogTemp, Warning, TEXT("Applied skin tone with melanin index '%.2f' to MetaHuman based on parents '%s' and '%s'"), ChildMelaninIndex, *FatherSkinID.ToString(), *MotherSkinID.ToString());
 	}
 }
 
