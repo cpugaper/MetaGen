@@ -38,8 +38,6 @@ void UGeneticsManager::ApplyEyeColorGenetics(FName FatherEyeColorID, FName Mothe
 
 	// Apply the determined eye color to the MetaHuman instance
 	MetaHumanInstance->SetIntParameterSelectedOption(FString("EyeColor"), FString(ChildEyeColor.ToString()));
-
-	UE_LOG(LogTemp, Warning, TEXT("Genetics: Applied eye '%s' (Parents: %s + %s)"), *ChildEyeColor.ToString(), *FatherEyeColorID.ToString(), *MotherEyeColorID.ToString());
 }
 
 FName UGeneticsManager::DetermineEyeColor(int32 DomA, FName NameA, int32 DomB, FName NameB)
@@ -72,15 +70,23 @@ void UGeneticsManager::ApplySkinToneGenetics(FName FatherSkinID, FName MotherSki
 	FSkinGeneticData* FatherData = SkinGeneticsTable->FindRow<FSkinGeneticData>(FatherSkinID, TEXT("Genetics Skin Context"));
 	FSkinGeneticData* MotherData = SkinGeneticsTable->FindRow<FSkinGeneticData>(MotherSkinID, TEXT("Genetics Skin Context"));
 
-	// Determine child's skin tone based on parents' dominance
 	
 	if (FatherData && MotherData) {
-		float ChildMelaninIndex = (FatherData->MelaninIndex + MotherData->MelaninIndex) / 2.0f;
-		float Mutation = FMath::FRandRange(-0.05f, 0.05f);
-		ChildMelaninIndex = FMath::Clamp(ChildMelaninIndex + Mutation, 0.0f, 1.0f);
+		// Determine skin tone range
+		float MinMelanin = FMath::Min(FatherData->MelaninIndex, MotherData->MelaninIndex);
+		float MaxMelanin = FMath::Max(FatherData->MelaninIndex, MotherData->MelaninIndex);
+
+		// Favor darker skin tones
+		const float DarknessBias = 0.6f; 
+		float RandomValue = FMath::Pow(FMath::FRand(), DarknessBias);
+
+		float ChildMelaninIndex = FMath::Lerp(MinMelanin, MaxMelanin, RandomValue);
+
+		DebugMinSkin = MinMelanin;
+		DebugMaxSkin = MaxMelanin;
+		DebugChildSkin = ChildMelaninIndex;
 
 		MetaHumanInstance->SetFloatParameterSelectedOption(FString("SkinTone"), ChildMelaninIndex);
-		UE_LOG(LogTemp, Warning, TEXT("Applied skin tone with melanin index '%.2f' to MetaHuman based on parents '%s' and '%s'"), ChildMelaninIndex, *FatherSkinID.ToString(), *MotherSkinID.ToString());
 	}
 }
 

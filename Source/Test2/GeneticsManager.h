@@ -68,6 +68,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genetics")
 	UDataTable* SkinGeneticsTable;
 
+
+	// Debug values 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug")
+	float DebugMinSkin = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug")
+	float DebugMaxSkin = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug")
+	float DebugChildSkin = 0.0f;
+
+
 	UFUNCTION(BlueprintCallable, Category="Genetics")
 	void ApplyEyeColorGenetics(FName FatherPhenotype, FName MotherPhenotype); 
 
