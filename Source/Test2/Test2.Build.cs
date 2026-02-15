@@ -8,7 +8,7 @@ public class Test2 : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "CustomizableObject" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "CustomizableObject", "HairStrandsCore" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

@@ -12,55 +12,21 @@ void UGeneticsManager::BeginPlay()
 
 void UGeneticsManager::ApplyEyeColorGenetics(FName FatherEyeColorID, FName MotherEyeColorID)
 {
-	if (!MetaHumanInstance)
-	{
-		UE_LOG(LogTemp, Error, TEXT("ERROR: MetaHumanInstance not assigned"));
-		return;
-	}
-	if (!EyeGeneticsTable)
-	{
-		UE_LOG(LogTemp, Error, TEXT("ERROR: EyeGeneticsTable not assigned"));
-		return;
-	}
+	if (!MetaHumanInstance || !EyeGeneticsTable) return;
 
 	// Retrieve genetic data for both parents
 	FEyeGeneticData* FatherData = EyeGeneticsTable->FindRow<FEyeGeneticData>(FatherEyeColorID, TEXT("Genetics Eye Context"));
 	FEyeGeneticData* MotherData = EyeGeneticsTable->FindRow<FEyeGeneticData>(MotherEyeColorID, TEXT("Genetics Eye Context"));
 
-	if (!FatherData || !MotherData)
+	if (FatherData && MotherData)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Genetics: Could not find eye data for '%s' or '%s'"), *FatherEyeColorID.ToString(), *MotherEyeColorID.ToString());
-		return;
-	}
+		// Determine child's eye color based on parents' dominance
+		FName ChildEyeColor = SelectDominantPhenotype(FatherEyeColorID, FatherData->DominanceIndex, MotherEyeColorID, MotherData->DominanceIndex);
 
-	// Determine child's eye color based on parents' dominance
-	FName ChildEyeColor = DetermineEyeColor(FatherData->DominanceIndex, FatherEyeColorID, MotherData->DominanceIndex, MotherEyeColorID);
-
-	// Apply the determined eye color to the MetaHuman instance
-	MetaHumanInstance->SetIntParameterSelectedOption(FString("EyeColor"), FString(ChildEyeColor.ToString()));
-}
-
-FName UGeneticsManager::DetermineEyeColor(int32 DomA, FName NameA, int32 DomB, FName NameB)
-{
-	float ChanceForA = 0.5f;
-
-	// Mendel's laws: 75% chance for the dominant trait, 25% for the recessive
-	if (DomA > DomB) {
-		ChanceForA = 0.75f; 
-	}
-	else if (DomB > DomA) {
-		ChanceForA = 0.25f;
-	}
-	
-	float RandomValue = FMath::FRand(); 
-
-	if (RandomValue <= ChanceForA) {
-		return NameA; 
-	} else {
-		return NameB; 
+		// Apply the determined eye color to the MetaHuman instance
+		MetaHumanInstance->SetIntParameterSelectedOption(FString("EyeColor"), FString(ChildEyeColor.ToString()));
 	}
 }
-
 
 void UGeneticsManager::ApplySkinToneGenetics(FName FatherSkinID, FName MotherSkinID)
 {
@@ -77,7 +43,7 @@ void UGeneticsManager::ApplySkinToneGenetics(FName FatherSkinID, FName MotherSki
 		float MaxMelanin = FMath::Max(FatherData->MelaninIndex, MotherData->MelaninIndex);
 
 		// Favor darker skin tones
-		const float DarknessBias = 0.6f; 
+		const float DarknessBias = 0.4f; 
 		float RandomValue = FMath::Pow(FMath::FRand(), DarknessBias);
 
 		float ChildMelaninIndex = FMath::Lerp(MinMelanin, MaxMelanin, RandomValue);
@@ -88,6 +54,63 @@ void UGeneticsManager::ApplySkinToneGenetics(FName FatherSkinID, FName MotherSki
 
 		MetaHumanInstance->SetFloatParameterSelectedOption(FString("SkinTone"), ChildMelaninIndex);
 	}
+}
+
+void UGeneticsManager::ApplyHairGenetics(FName FatherHairTextID, FName MotherHairTextID)
+{
+	if (!MetaHumanInstance || !HairTextureGeneticsTable) return;
+
+	FHairTextureGeneticData* FatherTex = HairTextureGeneticsTable->FindRow<FHairTextureGeneticData>(FatherHairTextID, TEXT("Hair Texture Context"));
+	FHairTextureGeneticData* MotherTex = HairTextureGeneticsTable->FindRow<FHairTextureGeneticData>(MotherHairTextID, TEXT("Hair Texture Context"));
+
+	if (FatherTex && MotherTex)
+	{
+		// Determine hair texture range
+		float MinType = FMath::Min(FatherTex->TextureDominance, MotherTex->TextureDominance);
+		float MaxType = FMath::Max(FatherTex->TextureDominance, MotherTex->TextureDominance);
+
+		// Favor curlier textures
+		const float CurlBias = 0.5f;
+		float RandomValue = FMath::Pow(FMath::FRand(), CurlBias);
+
+		float RawResult = FMath::Lerp(MinType, MaxType, RandomValue);
+		int32 ChildTexture = FMath::RoundToInt(RawResult);
+
+		FString ResultTextureType;
+		switch (ChildTexture)
+		{
+			case 0: ResultTextureType = "Straight"; break;
+			case 1: ResultTextureType = "Wavy"; break;
+			case 2: ResultTextureType = "Curly"; break;
+			default: ResultTextureType = "Wavy"; break; 
+		}
+
+		MetaHumanInstance->SetIntParameterSelectedOption("Hair", ResultTextureType);
+
+		if (GEngine)
+		{
+			FString Msg = FString::Printf(TEXT("Padres [%d, %d] -> Raw: %.2f -> Final: %s"),
+				(int32)MinType, (int32)MaxType, RawResult, *ResultTextureType);
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Cyan, Msg);
+		}
+	}
+}
+
+FName UGeneticsManager::SelectDominantPhenotype(FName PhenotypeA, int32 DominanceA, FName PhenotypeB, int32 DominanceB) const
+{
+	float ChanceForA = 0.5f;
+
+	// Mendelian inheritance: the more dominant trait has a higher chance (3/4) to be expressed in the child
+	if (DominanceA > DominanceB)
+	{
+		ChanceForA = 0.75f;
+	}
+	else if (DominanceB > DominanceA)
+	{
+		ChanceForA = 0.25f;
+	}
+
+	return (FMath::FRand() <= ChanceForA) ? PhenotypeA : PhenotypeB;
 }
 
 

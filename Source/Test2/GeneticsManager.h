@@ -8,6 +8,8 @@
 #include "MuCO/CustomizableObjectInstance.h"
 #include "GeneticsManager.generated.h"
 
+class UGroomAsset;
+
 USTRUCT(BlueprintType)
 struct FEyeGeneticData : public FTableRowBase
 {
@@ -47,6 +49,47 @@ public:
 	}
 };
 
+/* 
+USTRUCT(BlueprintType)
+struct FHairColorGeneticData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public: 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float MelaninLevel;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float RednessLevel;
+
+	// Dominance of the allele: 0 = recessive (Red), 1 = recessive (Blonde), 2 = dominant (Brown), 3 = dominant (Black)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ColorDominance;
+
+	FHairColorGeneticData()
+	{
+		MelaninLevel = 0.5f;
+		RednessLevel = 0.0f;
+		ColorDominance = 2; 
+	}
+}; */
+
+USTRUCT(BlueprintType)
+struct FHairTextureGeneticData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	// Dominance of the allele: 0 = Straight, 1 = Wavy, 2 = Curly
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 TextureDominance;
+
+	FHairTextureGeneticData()
+	{
+		TextureDominance = 2;
+	}
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class TEST2_API UGeneticsManager : public UActorComponent
 {
@@ -67,7 +110,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genetics")
 	UDataTable* SkinGeneticsTable;
+/*
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genetics")
+	UDataTable* HairColorGeneticsTable;
+	*/
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genetics")
+	UDataTable* HairTextureGeneticsTable;
 
 	// Debug values 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug")
@@ -86,6 +135,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
 	void ApplySkinToneGenetics(FName FatherPhenotype, FName MotherPhenotype);
 
+	UFUNCTION(BlueprintCallable, Category = "Genetics")
+	void ApplyHairGenetics(FName FatherPhenotype, FName MotherPhenotype);
+
 private:
-	FName DetermineEyeColor(int32 DomA, FName NameA, int32 DomB, FName NameB);
+	UFUNCTION(BlueprintPure, Category = "Genetics Logic")
+	FName SelectDominantPhenotype(FName PhenotypeA, int32 DominanceA, FName PhenotypeB, int32 DominanceB) const;
 };
