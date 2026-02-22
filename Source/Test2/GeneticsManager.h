@@ -5,10 +5,11 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Engine/DataTable.h"
+#include "GroomComponent.h"
+#include "GroomAsset.h"
 #include "MuCO/CustomizableObjectInstance.h"
+#include "Materials/MaterialInterface.h"
 #include "GeneticsManager.generated.h"
-
-class UGroomAsset;
 
 USTRUCT(BlueprintType)
 struct FEyeGeneticData : public FTableRowBase
@@ -18,7 +19,7 @@ struct FEyeGeneticData : public FTableRowBase
 public:
 	// Visual representation of the phenotype
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSoftObjectPtr<UMaterialInstance> Material;
+	TSoftObjectPtr<UMaterialInstance> EyeMaterial;
 
 	// Dominance of the allele: 0 = recessive (Blue/Green), 10 = dominant (Brown)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -28,7 +29,7 @@ public:
 	FEyeGeneticData()
 	{
 		DominanceIndex = 0;
-		Material = TSoftObjectPtr<UMaterialInstance>(FSoftObjectPath(TEXT("/Game/MetaHumans/Fathers/Dax/MID_MI_EyeRefractive_Inst_L_0.MID_MI_EyeRefractive_Inst_L_0")));
+		EyeMaterial = TSoftObjectPtr<UMaterialInstance>(FSoftObjectPath(TEXT("/Game/MetaHumans/Fathers/Dax/Face/MID_MI_EyeRefractive_Inst_L_0.MID_MI_EyeRefractive_Inst_L_0")));
 	}
 };
 
@@ -49,30 +50,25 @@ public:
 	}
 };
 
-/* 
 USTRUCT(BlueprintType)
 struct FHairColorGeneticData : public FTableRowBase
 {
 	GENERATED_BODY()
 
-public: 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
-	float MelaninLevel;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
-	float RednessLevel;
-
-	// Dominance of the allele: 0 = recessive (Red), 1 = recessive (Blonde), 2 = dominant (Brown), 3 = dominant (Black)
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ColorDominance;
+	TSoftObjectPtr<UMaterialInterface> HairMaterial;
+
+	// Dominance of the allele: 0 = Red, 1 = Blonde, 2 = Brown/Black
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 DominanceIndex;
 
 	FHairColorGeneticData()
 	{
-		MelaninLevel = 0.5f;
-		RednessLevel = 0.0f;
-		ColorDominance = 2; 
+		HairMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(TEXT("/Game/MetaHumans/Children/Amelia/Materials/MI_Hair.MI_Hair")));
+		DominanceIndex = 2;
 	}
-}; */
+};
 
 USTRUCT(BlueprintType)
 struct FHairTextureGeneticData : public FTableRowBase
@@ -80,13 +76,13 @@ struct FHairTextureGeneticData : public FTableRowBase
 	GENERATED_BODY()
 
 public:
-	// Dominance of the allele: 0 = Straight, 1 = Wavy, 2 = Curly
+	// El valor real de la textura: 0 = Straight, 1 = Wavy, 2 = Curly
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 TextureDominance;
+	int32 DominanceIndex;
 
 	FHairTextureGeneticData()
 	{
-		TextureDominance = 2;
+		DominanceIndex = 2;
 	}
 };
 
@@ -105,15 +101,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Genetics")
 	UCustomizableObjectInstance* MetaHumanInstance;
 
+	// Genetics data tables for each trait
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Genetics")
 	UDataTable* EyeGeneticsTable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genetics")
 	UDataTable* SkinGeneticsTable;
-/*
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genetics")
 	UDataTable* HairColorGeneticsTable;
-	*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genetics")
 	UDataTable* HairTextureGeneticsTable;
@@ -136,9 +132,17 @@ public:
 	void ApplySkinToneGenetics(FName FatherPhenotype, FName MotherPhenotype);
 
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
-	void ApplyHairGenetics(FName FatherPhenotype, FName MotherPhenotype);
+	void ApplyHairTextureGenetics(FName FatherPhenotype, FName MotherPhenotype);
+
+	UFUNCTION(BlueprintCallable, Category = "Genetics")
+	void ApplyHairColorGenetics();
+
+	UFUNCTION(BlueprintCallable, Category = "Genetics")
+	void CalculateHairColor(FName FatherPhenotype, FName MotherPhenotype);
 
 private:
 	UFUNCTION(BlueprintPure, Category = "Genetics Logic")
 	FName SelectDominantPhenotype(FName PhenotypeA, int32 DominanceA, FName PhenotypeB, int32 DominanceB) const;
+
+	FName CurrentWinnerHairID;
 };

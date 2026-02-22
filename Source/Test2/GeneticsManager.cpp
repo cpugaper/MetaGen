@@ -56,18 +56,18 @@ void UGeneticsManager::ApplySkinToneGenetics(FName FatherSkinID, FName MotherSki
 	}
 }
 
-void UGeneticsManager::ApplyHairGenetics(FName FatherHairTextID, FName MotherHairTextID)
+void UGeneticsManager::ApplyHairTextureGenetics(FName FatherHairTexID, FName MotherHairTexID)
 {
 	if (!MetaHumanInstance || !HairTextureGeneticsTable) return;
 
-	FHairTextureGeneticData* FatherTex = HairTextureGeneticsTable->FindRow<FHairTextureGeneticData>(FatherHairTextID, TEXT("Hair Texture Context"));
-	FHairTextureGeneticData* MotherTex = HairTextureGeneticsTable->FindRow<FHairTextureGeneticData>(MotherHairTextID, TEXT("Hair Texture Context"));
+	FHairTextureGeneticData* FatherData = HairTextureGeneticsTable->FindRow<FHairTextureGeneticData>(FatherHairTexID, TEXT("Hair Texture Context"));
+	FHairTextureGeneticData* MotherData = HairTextureGeneticsTable->FindRow<FHairTextureGeneticData>(MotherHairTexID, TEXT("Hair Texture Context"));
 
-	if (FatherTex && MotherTex)
+	if (FatherData && MotherData)
 	{
 		// Determine hair texture range
-		float MinType = FMath::Min(FatherTex->TextureDominance, MotherTex->TextureDominance);
-		float MaxType = FMath::Max(FatherTex->TextureDominance, MotherTex->TextureDominance);
+		float MinType = FMath::Min(FatherData->DominanceIndex, MotherData->DominanceIndex);
+		float MaxType = FMath::Max(FatherData->DominanceIndex, MotherData->DominanceIndex);
 
 		// Favor curlier textures
 		const float CurlBias = 0.5f;
@@ -89,10 +89,67 @@ void UGeneticsManager::ApplyHairGenetics(FName FatherHairTextID, FName MotherHai
 
 		if (GEngine)
 		{
-			FString Msg = FString::Printf(TEXT("Padres [%d, %d] -> Raw: %.2f -> Final: %s"),
-				(int32)MinType, (int32)MaxType, RawResult, *ResultTextureType);
-			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Cyan, Msg);
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("Final Texture: %s"), *ResultTextureType));
 		}
+	}
+}
+
+void UGeneticsManager::CalculateHairColor(FName FatherHairColorID, FName MotherHairColorID)
+{
+	if (!MetaHumanInstance || !HairColorGeneticsTable) return;
+
+	FHairColorGeneticData* FatherData = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(FatherHairColorID, TEXT("Hair Color Context"));
+	FHairColorGeneticData* MotherData = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(MotherHairColorID, TEXT("Hair Color Context"));
+
+	if (FatherData && MotherData)
+	{
+		CurrentWinnerHairID = SelectDominantPhenotype(FatherHairColorID, FatherData->DominanceIndex, MotherHairColorID, MotherData->DominanceIndex);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Color Heredado de: %s"), *CurrentWinnerHairID.ToString()));
+		}
+	}
+}
+
+void UGeneticsManager::ApplyHairColorGenetics()
+{
+	if (!MetaHumanInstance || !HairColorGeneticsTable) return;
+	
+	FHairColorGeneticData* WinnerData = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(CurrentWinnerHairID, TEXT("Hair Color Context"));
+
+	if (WinnerData)
+	{
+		AActor* OwnerActor = GetOwner();
+		if (OwnerActor)
+		{
+			TArray<UGroomComponent*> GroomComponents;
+			OwnerActor->GetComponents<UGroomComponent>(GroomComponents);
+
+			UE_LOG(LogTemp, Warning, TEXT("Genetics Debug: Encontrados %d GroomComponents en el actor."), GroomComponents.Num());
+
+			for (UGroomComponent* Groom : GroomComponents)
+			{
+				if (Groom->GroomAsset)
+				{
+					FString AssetName = Groom->GroomAsset->GetName();
+
+					if (!AssetName.Contains("Eyelash") && !AssetName.Contains("Fuzz"))
+					{
+						UMaterialInterface* HairMat = WinnerData->HairMaterial.LoadSynchronous();
+						if (HairMat)
+						{
+							int32 TargetSlot = 0;
+							if (AssetName.Contains("Coil")) TargetSlot = 1; // General material changes in slot 1 for curly hair assets
+
+							Groom->SetMaterial(TargetSlot, HairMat);
+							Groom->MarkRenderStateDirty();
+							UE_LOG(LogTemp, Warning, TEXT("Genetics Debug: ¡BINGO! Material aplicado al asset [%s] (Componente: %s)"), *AssetName, *Groom->GetName());
+						}
+					}
+				}
+			}
+		}
+	
 	}
 }
 
