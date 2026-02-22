@@ -140,9 +140,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
 	void CalculateHairColor(FName FatherPhenotype, FName MotherPhenotype);
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Genetics")
+	bool bNeedsMutableUpdate = false;
+
 private:
 	UFUNCTION(BlueprintPure, Category = "Genetics Logic")
 	FName SelectDominantPhenotype(FName PhenotypeA, int32 DominanceA, FName PhenotypeB, int32 DominanceB) const;
 
 	FName CurrentWinnerHairID;
+
+	// Optimization variables
+	FString LastAppliedEyeColor;
+	FString LastAppliedHairTexture;
+
+	UPROPERTY()
+	UMaterialInterface* CachedHairMaterial = nullptr;
 };

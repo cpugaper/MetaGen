@@ -22,9 +22,15 @@ void UGeneticsManager::ApplyEyeColorGenetics(FName FatherEyeColorID, FName Mothe
 	{
 		// Determine child's eye color based on parents' dominance
 		FName ChildEyeColor = SelectDominantPhenotype(FatherEyeColorID, FatherData->DominanceIndex, MotherEyeColorID, MotherData->DominanceIndex);
+		FString NewEyeColor = ChildEyeColor.ToString();
+
+		if (NewEyeColor == LastAppliedEyeColor) return;
+		LastAppliedEyeColor = NewEyeColor;
+		bNeedsMutableUpdate = true; 
 
 		// Apply the determined eye color to the MetaHuman instance
 		MetaHumanInstance->SetIntParameterSelectedOption(FString("EyeColor"), FString(ChildEyeColor.ToString()));
+		UE_LOG(LogTemp, Warning, TEXT("Eye color applied: [%s]"), *ChildEyeColor.ToString());
 	}
 }
 
@@ -85,12 +91,12 @@ void UGeneticsManager::ApplyHairTextureGenetics(FName FatherHairTexID, FName Mot
 			default: ResultTextureType = "Wavy"; break; 
 		}
 
-		MetaHumanInstance->SetIntParameterSelectedOption("Hair", ResultTextureType);
+		if (ResultTextureType == LastAppliedHairTexture) return;
+		LastAppliedHairTexture = ResultTextureType;
+		bNeedsMutableUpdate = true;
 
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("Final Texture: %s"), *ResultTextureType));
-		}
+		MetaHumanInstance->SetIntParameterSelectedOption("Hair", ResultTextureType);
+		UE_LOG(LogTemp, Warning, TEXT("Hair texture applied: [%s]"), *ResultTextureType);
 	}
 }
 
@@ -104,9 +110,11 @@ void UGeneticsManager::CalculateHairColor(FName FatherHairColorID, FName MotherH
 	if (FatherData && MotherData)
 	{
 		CurrentWinnerHairID = SelectDominantPhenotype(FatherHairColorID, FatherData->DominanceIndex, MotherHairColorID, MotherData->DominanceIndex);
-		if (GEngine)
+
+		FHairColorGeneticData* WinnerData = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(CurrentWinnerHairID, TEXT("Hair Color Context"));
+		if (WinnerData)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Color Heredado de: %s"), *CurrentWinnerHairID.ToString()));
+			CachedHairMaterial = WinnerData->HairMaterial.LoadSynchronous();
 		}
 	}
 }
@@ -114,42 +122,34 @@ void UGeneticsManager::CalculateHairColor(FName FatherHairColorID, FName MotherH
 void UGeneticsManager::ApplyHairColorGenetics()
 {
 	if (!MetaHumanInstance || !HairColorGeneticsTable) return;
-	
-	FHairColorGeneticData* WinnerData = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(CurrentWinnerHairID, TEXT("Hair Color Context"));
+	if (!CachedHairMaterial) return;
 
-	if (WinnerData)
+	AActor* OwnerActor = GetOwner();
+	if (OwnerActor)
 	{
-		AActor* OwnerActor = GetOwner();
-		if (OwnerActor)
+		TArray<UGroomComponent*> GroomComponents;
+		OwnerActor->GetComponents<UGroomComponent>(GroomComponents);
+
+		for (UGroomComponent* Groom : GroomComponents)
 		{
-			TArray<UGroomComponent*> GroomComponents;
-			OwnerActor->GetComponents<UGroomComponent>(GroomComponents);
-
-			UE_LOG(LogTemp, Warning, TEXT("Genetics Debug: Encontrados %d GroomComponents en el actor."), GroomComponents.Num());
-
-			for (UGroomComponent* Groom : GroomComponents)
+			if (Groom->GroomAsset)
 			{
-				if (Groom->GroomAsset)
+				FString AssetName = Groom->GroomAsset->GetName();
+
+				if (!AssetName.Contains("Eyelash") && !AssetName.Contains("Fuzz"))
 				{
-					FString AssetName = Groom->GroomAsset->GetName();
+					int32 TargetSlot = 0;
+					if (AssetName.Contains("Coil")) TargetSlot = 1; // In curly hair assets material is in slot 1 not 0
 
-					if (!AssetName.Contains("Eyelash") && !AssetName.Contains("Fuzz"))
+					if (Groom->GetMaterial(TargetSlot) != CachedHairMaterial)
 					{
-						UMaterialInterface* HairMat = WinnerData->HairMaterial.LoadSynchronous();
-						if (HairMat)
-						{
-							int32 TargetSlot = 0;
-							if (AssetName.Contains("Coil")) TargetSlot = 1; // General material changes in slot 1 for curly hair assets
-
-							Groom->SetMaterial(TargetSlot, HairMat);
-							Groom->MarkRenderStateDirty();
-							UE_LOG(LogTemp, Warning, TEXT("Genetics Debug: ¡BINGO! Material aplicado al asset [%s] (Componente: %s)"), *AssetName, *Groom->GetName());
-						}
+						Groom->SetMaterial(TargetSlot, CachedHairMaterial);
+						Groom->MarkRenderStateDirty();
+						UE_LOG(LogTemp, Warning, TEXT("Material updated in [%s]"), *AssetName);
 					}
 				}
 			}
 		}
-	
 	}
 }
 
