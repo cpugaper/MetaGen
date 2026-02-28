@@ -38,7 +38,6 @@ void UGeneticsManager::ApplySkinToneGenetics(FName FatherSkinID, FName MotherSki
 {
 	if (!MetaHumanInstance || !SkinGeneticsTable) return;
 
-	// Retrieve genetic data for both parents
 	FSkinGeneticData* FatherData = SkinGeneticsTable->FindRow<FSkinGeneticData>(FatherSkinID, TEXT("Genetics Skin Context"));
 	FSkinGeneticData* MotherData = SkinGeneticsTable->FindRow<FSkinGeneticData>(MotherSkinID, TEXT("Genetics Skin Context"));
 

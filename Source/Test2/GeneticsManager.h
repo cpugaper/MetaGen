@@ -17,19 +17,16 @@ struct FEyeGeneticData : public FTableRowBase
 	GENERATED_BODY()
 
 public:
-	// Visual representation of the phenotype
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSoftObjectPtr<UMaterialInstance> EyeMaterial;
 
-	// Dominance of the allele: 0 = recessive (Blue/Green), 10 = dominant (Brown)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 DominanceIndex;
 
-	// Default constructor
 	FEyeGeneticData()
 	{
 		DominanceIndex = 0;
-		EyeMaterial = TSoftObjectPtr<UMaterialInstance>(FSoftObjectPath(TEXT("/Game/MetaHumans/Fathers/Dax/Face/MID_MI_EyeRefractive_Inst_L_0.MID_MI_EyeRefractive_Inst_L_0")));
+		EyeMaterial = TSoftObjectPtr<UMaterialInstance>(FSoftObjectPath(TEXT("/Game/Mutable/EyeColors/MI_EyeColor_Brown.MI_EyeColor_Brown")));
 	}
 };
 
@@ -39,11 +36,10 @@ struct FSkinGeneticData : public FTableRowBase
 	GENERATED_BODY()
 
 public:
-	// Exact value in the gradient texture, where 0 is the lightest skin tone and 1 is the darkest
+	// 0 is the lightest skin tone and 1 is the darkest
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float MelaninIndex;
 
-	// Default constructor
 	FSkinGeneticData()
 	{
 		MelaninIndex = 0.5f;
@@ -59,7 +55,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSoftObjectPtr<UMaterialInterface> HairMaterial;
 
-	// Dominance of the allele: 0 = Red, 1 = Blonde, 2 = Brown/Black
+	// 0 = Red, 1 = Blonde, 2 = Brown/Black
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 DominanceIndex;
 
@@ -76,7 +72,7 @@ struct FHairTextureGeneticData : public FTableRowBase
 	GENERATED_BODY()
 
 public:
-	// El valor real de la textura: 0 = Straight, 1 = Wavy, 2 = Curly
+	// 0 = Straight, 1 = Wavy, 2 = Curly
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 DominanceIndex;
 
