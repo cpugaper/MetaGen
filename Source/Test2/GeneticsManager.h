@@ -11,6 +11,13 @@
 #include "Materials/MaterialInterface.h"
 #include "GeneticsManager.generated.h"
 
+UENUM(BlueprintType)
+enum class EChildGender : uint8
+{
+	Female = 0 UMETA(DisplayName = "Female"),
+	Male = 1 UMETA(DisplayName = "Male")
+};
+
 USTRUCT(BlueprintType)
 struct FEyeGeneticData : public FTableRowBase
 {
@@ -135,6 +142,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
 	void CalculateHairColor(FName FatherPhenotype, FName MotherPhenotype);
+
+
+	UFUNCTION(BlueprintCallable, Category = "Genetics")
+	void SetChildGender(EChildGender NewGender);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Genetics")
+	EChildGender CurrentGender = EChildGender::Female;
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Genetics")
 	bool bNeedsMutableUpdate = false;

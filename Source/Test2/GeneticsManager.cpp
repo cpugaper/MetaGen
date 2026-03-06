@@ -10,6 +10,18 @@ void UGeneticsManager::BeginPlay()
 	Super::BeginPlay();
 }
 
+void UGeneticsManager::SetChildGender(EChildGender NewGender)
+{
+	if (!MetaHumanInstance || CurrentGender == NewGender) return;
+	
+	CurrentGender = NewGender;
+	FString OptionName = (CurrentGender == EChildGender::Male) ? TEXT("Male") : TEXT("Female");
+	MetaHumanInstance->SetIntParameterSelectedOption(TEXT("Gender"), OptionName);
+
+	bNeedsMutableUpdate = true;
+	UE_LOG(LogTemp, Warning, TEXT("Gender updated: [%s]"), *OptionName);
+}
+
 void UGeneticsManager::ApplyEyeColorGenetics(FName FatherEyeColorID, FName MotherEyeColorID)
 {
 	if (!MetaHumanInstance || !EyeGeneticsTable) return;
