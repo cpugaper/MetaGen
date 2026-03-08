@@ -68,6 +68,8 @@ void UGeneticsManager::ApplySkinToneGenetics(FName FatherSkinID, FName MotherSki
 		DebugMinSkin = MinMelanin;
 		DebugMaxSkin = MaxMelanin;
 		DebugChildSkin = ChildMelaninIndex;
+		
+		bNeedsMutableUpdate = true;
 
 		MetaHumanInstance->SetFloatParameterSelectedOption(FString("SkinTone"), ChildMelaninIndex);
 	}
@@ -132,8 +134,7 @@ void UGeneticsManager::CalculateHairColor(FName FatherHairColorID, FName MotherH
 
 void UGeneticsManager::ApplyHairColorGenetics()
 {
-	if (!MetaHumanInstance || !HairColorGeneticsTable) return;
-	if (!CachedHairMaterial) return;
+	if (!MetaHumanInstance || !HairColorGeneticsTable || !CachedHairMaterial) return;
 
 	AActor* OwnerActor = GetOwner();
 	if (OwnerActor)
@@ -149,15 +150,17 @@ void UGeneticsManager::ApplyHairColorGenetics()
 
 				if (!AssetName.Contains("Eyelash") && !AssetName.Contains("Fuzz"))
 				{
-					int32 TargetSlot = 0;
-					if (AssetName.Contains("Coil")) TargetSlot = 1; // In curly hair assets material is in slot 1 not 0
+					int32 NumMaterials = Groom->GetNumMaterials();
 
-					if (Groom->GetMaterial(TargetSlot) != CachedHairMaterial)
+					for (int32 SlotIndex = 0; SlotIndex < NumMaterials; ++SlotIndex)
 					{
-						Groom->SetMaterial(TargetSlot, CachedHairMaterial);
-						Groom->MarkRenderStateDirty();
-						UE_LOG(LogTemp, Warning, TEXT("Material updated in [%s]"), *AssetName);
+						if (Groom->GetMaterial(SlotIndex) != CachedHairMaterial)
+						{
+							Groom->SetMaterial(SlotIndex, CachedHairMaterial);
+						}
 					}
+
+					Groom->MarkRenderStateDirty();
 				}
 			}
 		}
