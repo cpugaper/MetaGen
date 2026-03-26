@@ -127,21 +127,31 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug")
 	float DebugChildSkin = 0.0f;
 
+	// Functions to calculate genetics
+	UFUNCTION(BlueprintCallable, Category = "Genetics")
+	FName CalculateEyeColor(FName FatherPhenotype, FName MotherPhenotype);
 
+	UFUNCTION(BlueprintCallable, Category = "Genetics")
+	float CalculateSkinTone(FName FatherPhenotype, FName MotherPhenotype);
+
+	UFUNCTION(BlueprintCallable, Category = "Genetics")
+	int32 CalculateHairTexture(FName FatherPhenotype, FName MotherPhenotype);
+
+	UFUNCTION(BlueprintCallable, Category = "Genetics")
+	FName CalculateHairColor(FName FatherPhenotype, FName MotherPhenotype);
+
+	// Functions to apply genetics
 	UFUNCTION(BlueprintCallable, Category="Genetics")
-	void ApplyEyeColorGenetics(FName FatherPhenotype, FName MotherPhenotype); 
+	void ApplyEyeColorGenetics(FName ChildEyeColorID); 
 
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
-	void ApplySkinToneGenetics(FName FatherPhenotype, FName MotherPhenotype);
+	void ApplySkinToneGenetics(float ChildSkinToneID);
 
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
-	void ApplyHairTextureGenetics(FName FatherPhenotype, FName MotherPhenotype);
+	void ApplyHairTextureGenetics(int32 ChildHairTextureID);
 
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
-	void ApplyHairColorGenetics();
-
-	UFUNCTION(BlueprintCallable, Category = "Genetics")
-	void CalculateHairColor(FName FatherPhenotype, FName MotherPhenotype);
+	void ApplyHairColorGenetics(FName ChildHairColorID);
 
 
 	UFUNCTION(BlueprintCallable, Category = "Genetics")

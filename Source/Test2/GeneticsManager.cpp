@@ -10,6 +10,7 @@ void UGeneticsManager::BeginPlay()
 	Super::BeginPlay();
 }
 
+// GENDER
 void UGeneticsManager::SetChildGender(EChildGender NewGender)
 {
 	if (!MetaHumanInstance || CurrentGender == NewGender) return;
@@ -22,9 +23,10 @@ void UGeneticsManager::SetChildGender(EChildGender NewGender)
 	UE_LOG(LogTemp, Warning, TEXT("Gender updated: [%s]"), *OptionName);
 }
 
-void UGeneticsManager::ApplyEyeColorGenetics(FName FatherEyeColorID, FName MotherEyeColorID)
+// EYE COLOR 
+FName UGeneticsManager::CalculateEyeColor(FName FatherEyeColorID, FName MotherEyeColorID)
 {
-	if (!MetaHumanInstance || !EyeGeneticsTable) return;
+	if (!EyeGeneticsTable) return NAME_None;
 
 	// Retrieve genetic data for both parents
 	FEyeGeneticData* FatherData = EyeGeneticsTable->FindRow<FEyeGeneticData>(FatherEyeColorID, TEXT("Genetics Eye Context"));
@@ -33,34 +35,40 @@ void UGeneticsManager::ApplyEyeColorGenetics(FName FatherEyeColorID, FName Mothe
 	if (FatherData && MotherData)
 	{
 		// Determine child's eye color based on parents' dominance
-		FName ChildEyeColor = SelectDominantPhenotype(FatherEyeColorID, FatherData->DominanceIndex, MotherEyeColorID, MotherData->DominanceIndex);
-		FString NewEyeColor = ChildEyeColor.ToString();
-
-		if (NewEyeColor == LastAppliedEyeColor) return;
-		LastAppliedEyeColor = NewEyeColor;
-		bNeedsMutableUpdate = true; 
-
-		// Apply the determined eye color to the MetaHuman instance
-		MetaHumanInstance->SetIntParameterSelectedOption(FString("EyeColor"), FString(ChildEyeColor.ToString()));
-		UE_LOG(LogTemp, Warning, TEXT("Eye color applied: [%s]"), *ChildEyeColor.ToString());
+		return SelectDominantPhenotype(FatherEyeColorID, FatherData->DominanceIndex, MotherEyeColorID, MotherData->DominanceIndex);
 	}
+	return NAME_None;
 }
 
-void UGeneticsManager::ApplySkinToneGenetics(FName FatherSkinID, FName MotherSkinID)
+void UGeneticsManager::ApplyEyeColorGenetics(FName ChildEyeColorID)
 {
-	if (!MetaHumanInstance || !SkinGeneticsTable) return;
+	if (!MetaHumanInstance) return;
+	FString NewEyeColor = ChildEyeColorID.ToString();
 
-	FSkinGeneticData* FatherData = SkinGeneticsTable->FindRow<FSkinGeneticData>(FatherSkinID, TEXT("Genetics Skin Context"));
-	FSkinGeneticData* MotherData = SkinGeneticsTable->FindRow<FSkinGeneticData>(MotherSkinID, TEXT("Genetics Skin Context"));
+	if (NewEyeColor == LastAppliedEyeColor) return;
+	LastAppliedEyeColor = NewEyeColor;
+	bNeedsMutableUpdate = true; 
 
-	
+	// Apply the determined eye color to the MetaHuman instance
+	MetaHumanInstance->SetIntParameterSelectedOption(FString("EyeColor"), FString(ChildEyeColorID.ToString()));
+	UE_LOG(LogTemp, Warning, TEXT("Eye color applied: [%s]"), *ChildEyeColorID.ToString());
+}
+
+// SKIN TONE
+float UGeneticsManager::CalculateSkinTone(FName FatherSkinToneID, FName MotherSkinToneID)
+{
+	if (!SkinGeneticsTable) return 0.5f;
+
+	FSkinGeneticData* FatherData = SkinGeneticsTable->FindRow<FSkinGeneticData>(FatherSkinToneID, TEXT("Genetics Skin Context"));
+	FSkinGeneticData* MotherData = SkinGeneticsTable->FindRow<FSkinGeneticData>(MotherSkinToneID, TEXT("Genetics Skin Context"));
+
 	if (FatherData && MotherData) {
 		// Determine skin tone range
 		float MinMelanin = FMath::Min(FatherData->MelaninIndex, MotherData->MelaninIndex);
 		float MaxMelanin = FMath::Max(FatherData->MelaninIndex, MotherData->MelaninIndex);
 
 		// Favor darker skin tones
-		const float DarknessBias = 0.4f; 
+		const float DarknessBias = 0.4f;
 		float RandomValue = FMath::Pow(FMath::FRand(), DarknessBias);
 
 		float ChildMelaninIndex = FMath::Lerp(MinMelanin, MaxMelanin, RandomValue);
@@ -68,16 +76,23 @@ void UGeneticsManager::ApplySkinToneGenetics(FName FatherSkinID, FName MotherSki
 		DebugMinSkin = MinMelanin;
 		DebugMaxSkin = MaxMelanin;
 		DebugChildSkin = ChildMelaninIndex;
-		
-		bNeedsMutableUpdate = true;
 
-		MetaHumanInstance->SetFloatParameterSelectedOption(FString("SkinTone"), ChildMelaninIndex);
+		return ChildMelaninIndex;
 	}
+	return 0.5f;
 }
 
-void UGeneticsManager::ApplyHairTextureGenetics(FName FatherHairTexID, FName MotherHairTexID)
+void UGeneticsManager::ApplySkinToneGenetics(float ChildSkinToneID)
+{		
+	if (!MetaHumanInstance) return;
+	bNeedsMutableUpdate = true;
+	MetaHumanInstance->SetFloatParameterSelectedOption(FString("SkinTone"), ChildSkinToneID);
+}
+
+//HAIR TEXTURE
+int32 UGeneticsManager::CalculateHairTexture(FName FatherHairTexID, FName MotherHairTexID)
 {
-	if (!MetaHumanInstance || !HairTextureGeneticsTable) return;
+	if (!HairTextureGeneticsTable) return 1;
 
 	FHairTextureGeneticData* FatherData = HairTextureGeneticsTable->FindRow<FHairTextureGeneticData>(FatherHairTexID, TEXT("Hair Texture Context"));
 	FHairTextureGeneticData* MotherData = HairTextureGeneticsTable->FindRow<FHairTextureGeneticData>(MotherHairTexID, TEXT("Hair Texture Context"));
@@ -95,46 +110,55 @@ void UGeneticsManager::ApplyHairTextureGenetics(FName FatherHairTexID, FName Mot
 		float RawResult = FMath::Lerp(MinType, MaxType, RandomValue);
 		int32 ChildTexture = FMath::RoundToInt(RawResult);
 
-		FString ResultTextureType;
-		switch (ChildTexture)
-		{
-			case 0: ResultTextureType = "Straight"; break;
-			case 1: ResultTextureType = "Wavy"; break;
-			case 2: ResultTextureType = "Curly"; break;
-			default: ResultTextureType = "Wavy"; break; 
-		}
-
-		if (ResultTextureType == LastAppliedHairTexture) return;
-		LastAppliedHairTexture = ResultTextureType;
-		bNeedsMutableUpdate = true;
-
-		MetaHumanInstance->SetIntParameterSelectedOption("Hair", ResultTextureType);
-		UE_LOG(LogTemp, Warning, TEXT("Hair texture applied: [%s]"), *ResultTextureType);
+		return ChildTexture;
 	}
+	return 1;
 }
 
-void UGeneticsManager::CalculateHairColor(FName FatherHairColorID, FName MotherHairColorID)
+void UGeneticsManager::ApplyHairTextureGenetics(int32 ChildHairTexID)
 {
-	if (!MetaHumanInstance || !HairColorGeneticsTable) return;
+	if (!MetaHumanInstance) return;
+
+	FString ResultTextureType;
+	switch (ChildHairTexID)
+	{
+		case 0: ResultTextureType = "Straight"; break;
+		case 1: ResultTextureType = "Wavy"; break;
+		case 2: ResultTextureType = "Curly"; break;
+		default: ResultTextureType = "Wavy"; break; 
+	}
+
+	if (ResultTextureType == LastAppliedHairTexture) return;
+	LastAppliedHairTexture = ResultTextureType;
+	bNeedsMutableUpdate = true;
+
+	MetaHumanInstance->SetIntParameterSelectedOption("Hair", ResultTextureType);
+	UE_LOG(LogTemp, Warning, TEXT("Hair texture applied: [%s]"), *ResultTextureType);
+}
+
+// HAIR COLOR
+FName UGeneticsManager::CalculateHairColor(FName FatherHairColorID, FName MotherHairColorID)
+{
+	if (!HairColorGeneticsTable) return NAME_None;
 
 	FHairColorGeneticData* FatherData = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(FatherHairColorID, TEXT("Hair Color Context"));
 	FHairColorGeneticData* MotherData = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(MotherHairColorID, TEXT("Hair Color Context"));
 
 	if (FatherData && MotherData)
 	{
-		CurrentWinnerHairID = SelectDominantPhenotype(FatherHairColorID, FatherData->DominanceIndex, MotherHairColorID, MotherData->DominanceIndex);
-
-		FHairColorGeneticData* WinnerData = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(CurrentWinnerHairID, TEXT("Hair Color Context"));
-		if (WinnerData)
-		{
-			CachedHairMaterial = WinnerData->HairMaterial.LoadSynchronous();
-		}
+		return SelectDominantPhenotype(FatherHairColorID, FatherData->DominanceIndex, MotherHairColorID, MotherData->DominanceIndex);
 	}
+	return NAME_None;
 }
 
-void UGeneticsManager::ApplyHairColorGenetics()
+void UGeneticsManager::ApplyHairColorGenetics(FName ChildHairColorID)
 {
-	if (!MetaHumanInstance || !HairColorGeneticsTable || !CachedHairMaterial) return;
+	if (!MetaHumanInstance || !HairColorGeneticsTable) return;
+
+	FHairColorGeneticData* WinnerData = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(ChildHairColorID, TEXT("Hair Color Context"));
+	if (!WinnerData) return;
+	UMaterialInterface* LoadedHairMaterial = WinnerData->HairMaterial.LoadSynchronous();
+	if (!LoadedHairMaterial) return;
 
 	AActor* OwnerActor = GetOwner();
 	if (OwnerActor)
@@ -151,15 +175,13 @@ void UGeneticsManager::ApplyHairColorGenetics()
 				if (!AssetName.Contains("Eyelash") && !AssetName.Contains("Fuzz"))
 				{
 					int32 NumMaterials = Groom->GetNumMaterials();
-
 					for (int32 SlotIndex = 0; SlotIndex < NumMaterials; ++SlotIndex)
 					{
-						if (Groom->GetMaterial(SlotIndex) != CachedHairMaterial)
+						if (Groom->GetMaterial(SlotIndex) != LoadedHairMaterial)
 						{
-							Groom->SetMaterial(SlotIndex, CachedHairMaterial);
+							Groom->SetMaterial(SlotIndex, LoadedHairMaterial);
 						}
 					}
-
 					Groom->MarkRenderStateDirty();
 				}
 			}
