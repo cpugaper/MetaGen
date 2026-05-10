@@ -20,7 +20,6 @@ void UGeneticsManager::SetChildGender(EChildGender NewGender)
 	MetaHumanInstance->SetIntParameterSelectedOption(TEXT("Gender"), OptionName);
 
 	bNeedsMutableUpdate = true;
-	UE_LOG(LogTemp, Warning, TEXT("Gender updated: [%s]"), *OptionName);
 }
 
 // EYE COLOR 
@@ -43,15 +42,10 @@ FName UGeneticsManager::CalculateEyeColor(FName FatherEyeColorID, FName MotherEy
 void UGeneticsManager::ApplyEyeColorGenetics(FName ChildEyeColorID)
 {
 	if (!MetaHumanInstance) return;
-	FString NewEyeColor = ChildEyeColorID.ToString();
-
-	if (NewEyeColor == LastAppliedEyeColor) return;
-	LastAppliedEyeColor = NewEyeColor;
 	bNeedsMutableUpdate = true; 
 
 	// Apply the determined eye color to the MetaHuman instance
 	MetaHumanInstance->SetIntParameterSelectedOption(FString("EyeColor"), FString(ChildEyeColorID.ToString()));
-	UE_LOG(LogTemp, Warning, TEXT("Eye color applied: [%s]"), *ChildEyeColorID.ToString());
 }
 
 // SKIN TONE
@@ -127,13 +121,9 @@ void UGeneticsManager::ApplyHairTextureGenetics(int32 ChildHairTexID)
 		case 2: ResultTextureType = "Curly"; break;
 		default: ResultTextureType = "Wavy"; break; 
 	}
-
-	if (ResultTextureType == LastAppliedHairTexture) return;
-	LastAppliedHairTexture = ResultTextureType;
 	bNeedsMutableUpdate = true;
 
 	MetaHumanInstance->SetIntParameterSelectedOption("Hair", ResultTextureType);
-	UE_LOG(LogTemp, Warning, TEXT("Hair texture applied: [%s]"), *ResultTextureType);
 }
 
 // HAIR COLOR
