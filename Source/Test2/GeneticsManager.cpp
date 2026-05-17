@@ -13,7 +13,7 @@ void UGeneticsManager::BeginPlay()
 // GENDER
 void UGeneticsManager::SetChildGender(EChildGender NewGender)
 {
-	if (!MetaHumanInstance || CurrentGender == NewGender) return;
+	if (!MetaHumanInstance) return;
 	
 	CurrentGender = NewGender;
 	FString OptionName = (CurrentGender == EChildGender::Male) ? TEXT("Male") : TEXT("Female");
