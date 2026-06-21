@@ -90,7 +90,7 @@ public:
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class TEST2_API UGeneticsManager : public UActorComponent
+class METAGEN_API UGeneticsManager : public UActorComponent
 {
 	GENERATED_BODY()
 

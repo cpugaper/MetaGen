@@ -3,13 +3,13 @@
 using UnrealBuildTool;
 using System.Collections.Generic;
 
-public class Test2Target : TargetRules
+public class MetaGenTarget : TargetRules
 {
-	public Test2Target(TargetInfo Target) : base(Target)
+	public MetaGenTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 
-		ExtraModuleNames.AddRange( new string[] { "Test2" } );
+		ExtraModuleNames.AddRange( new string[] { "MetaGen" } );
 	}
 }
