@@ -15,8 +15,7 @@ void UGeneticsManager::SetChildGender(EChildGender NewGender)
 {
 	if (!MetaHumanInstance) return;
 	
-	CurrentGender = NewGender;
-	FString OptionName = (CurrentGender == EChildGender::Male) ? TEXT("Male") : TEXT("Female");
+	FString OptionName = (NewGender == EChildGender::Male) ? TEXT("Male") : TEXT("Female");
 	MetaHumanInstance->SetIntParameterSelectedOption(TEXT("Gender"), OptionName);
 
 	bNeedsMutableUpdate = true;
@@ -44,7 +43,7 @@ void UGeneticsManager::ApplyEyeColorGenetics(FName ChildEyeColorID)
 	if (!MetaHumanInstance) return;
 	bNeedsMutableUpdate = true; 
 
-	// Apply the determined eye color to the MetaHuman instance
+	// Apply result to MetaHuman instance
 	MetaHumanInstance->SetIntParameterSelectedOption(FString("EyeColor"), FString(ChildEyeColorID.ToString()));
 }
 
@@ -66,10 +65,6 @@ float UGeneticsManager::CalculateSkinTone(FName FatherSkinToneID, FName MotherSk
 		float RandomValue = FMath::Pow(FMath::FRand(), DarknessBias);
 
 		float ChildMelaninIndex = FMath::Lerp(MinMelanin, MaxMelanin, RandomValue);
-
-		DebugMinSkin = MinMelanin;
-		DebugMaxSkin = MaxMelanin;
-		DebugChildSkin = ChildMelaninIndex;
 
 		return ChildMelaninIndex;
 	}

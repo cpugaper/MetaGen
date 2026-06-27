@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -43,7 +41,6 @@ struct FSkinGeneticData : public FTableRowBase
 	GENERATED_BODY()
 
 public:
-	// 0 is the lightest skin tone and 1 is the darkest
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float MelaninIndex;
 
@@ -62,7 +59,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSoftObjectPtr<UMaterialInterface> HairMaterial;
 
-	// 0 = Red, 1 = Blonde, 2 = Brown/Black
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 DominanceIndex;
 
@@ -79,7 +75,6 @@ struct FHairTextureGeneticData : public FTableRowBase
 	GENERATED_BODY()
 
 public:
-	// 0 = Straight, 1 = Wavy, 2 = Curly
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 DominanceIndex;
 
@@ -104,7 +99,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Genetics")
 	UCustomizableObjectInstance* MetaHumanInstance;
 
-	// Genetics data tables for each trait
+	// -- Genetic data tables --
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Genetics")
 	UDataTable* EyeGeneticsTable;
 
@@ -117,17 +112,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genetics")
 	UDataTable* HairTextureGeneticsTable;
 
-	// Debug values 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug")
-	float DebugMinSkin = 0.0f;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug")
-	float DebugMaxSkin = 0.0f;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug")
-	float DebugChildSkin = 0.0f;
-
-	// Functions to calculate genetics
+	// -- Calculation methods --
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
 	FName CalculateEyeColor(FName FatherPhenotype, FName MotherPhenotype);
 
@@ -140,7 +125,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
 	FName CalculateHairColor(FName FatherPhenotype, FName MotherPhenotype);
 
-	// Functions to apply genetics
+	// -- Aplication methods --
 	UFUNCTION(BlueprintCallable, Category="Genetics")
 	void ApplyEyeColorGenetics(FName ChildEyeColorID); 
 
@@ -157,9 +142,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
 	void SetChildGender(EChildGender NewGender);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Genetics")
-	EChildGender CurrentGender = EChildGender::Female;
-
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Genetics")
 	bool bNeedsMutableUpdate = false;
@@ -167,13 +149,4 @@ public:
 private:
 	UFUNCTION(BlueprintPure, Category = "Genetics Logic")
 	FName SelectDominantPhenotype(FName PhenotypeA, int32 DominanceA, FName PhenotypeB, int32 DominanceB) const;
-
-	FName CurrentWinnerHairID;
-
-	// Optimization variables
-	FString LastAppliedEyeColor;
-	FString LastAppliedHairTexture;
-
-	UPROPERTY()
-	UMaterialInterface* CachedHairMaterial = nullptr;
 };
