@@ -22,18 +22,18 @@ void UGeneticsManager::SetChildGender(EChildGender NewGender)
 }
 
 // EYE COLOR 
-FName UGeneticsManager::CalculateEyeColor(FName FatherEyeColorID, FName MotherEyeColorID)
+FName UGeneticsManager::CalculateEyeColor(FName P1EyeColorID, FName P2EyeColorID)
 {
 	if (!EyeGeneticsTable) return NAME_None;
 
 	// Retrieve genetic data for both parents
-	FEyeGeneticData* FatherData = EyeGeneticsTable->FindRow<FEyeGeneticData>(FatherEyeColorID, TEXT("Genetics Eye Context"));
-	FEyeGeneticData* MotherData = EyeGeneticsTable->FindRow<FEyeGeneticData>(MotherEyeColorID, TEXT("Genetics Eye Context"));
+	FEyeGeneticData* P1Data = EyeGeneticsTable->FindRow<FEyeGeneticData>(P1EyeColorID, TEXT("Genetics Eye Context"));
+	FEyeGeneticData* P2Data = EyeGeneticsTable->FindRow<FEyeGeneticData>(P2EyeColorID, TEXT("Genetics Eye Context"));
 
-	if (FatherData && MotherData)
+	if (P1Data && P2Data)
 	{
 		// Determine child's eye color based on parents' dominance
-		return SelectDominantPhenotype(FatherEyeColorID, FatherData->DominanceIndex, MotherEyeColorID, MotherData->DominanceIndex);
+		return SelectDominantPhenotype(P1EyeColorID, P1Data->DominanceIndex, P2EyeColorID, P2Data->DominanceIndex);
 	}
 	return NAME_None;
 }
@@ -48,17 +48,17 @@ void UGeneticsManager::ApplyEyeColorGenetics(FName ChildEyeColorID)
 }
 
 // SKIN TONE
-float UGeneticsManager::CalculateSkinTone(FName FatherSkinToneID, FName MotherSkinToneID)
+float UGeneticsManager::CalculateSkinTone(FName P1SkinToneID, FName P2SkinToneID)
 {
 	if (!SkinGeneticsTable) return 0.5f;
 
-	FSkinGeneticData* FatherData = SkinGeneticsTable->FindRow<FSkinGeneticData>(FatherSkinToneID, TEXT("Genetics Skin Context"));
-	FSkinGeneticData* MotherData = SkinGeneticsTable->FindRow<FSkinGeneticData>(MotherSkinToneID, TEXT("Genetics Skin Context"));
+	FSkinGeneticData* P1Data = SkinGeneticsTable->FindRow<FSkinGeneticData>(P1SkinToneID, TEXT("Genetics Skin Context"));
+	FSkinGeneticData* P2Data = SkinGeneticsTable->FindRow<FSkinGeneticData>(P2SkinToneID, TEXT("Genetics Skin Context"));
 
-	if (FatherData && MotherData) {
+	if (P1Data && P2Data) {
 		// Determine skin tone range
-		float MinMelanin = FMath::Min(FatherData->MelaninIndex, MotherData->MelaninIndex);
-		float MaxMelanin = FMath::Max(FatherData->MelaninIndex, MotherData->MelaninIndex);
+		float MinMelanin = FMath::Min(P1Data->MelaninIndex, P2Data->MelaninIndex);
+		float MaxMelanin = FMath::Max(P1Data->MelaninIndex, P2Data->MelaninIndex);
 
 		// Favor darker skin tones
 		const float DarknessBias = 0.4f;
@@ -79,18 +79,18 @@ void UGeneticsManager::ApplySkinToneGenetics(float ChildSkinToneID)
 }
 
 //HAIR TEXTURE
-int32 UGeneticsManager::CalculateHairTexture(FName FatherHairTexID, FName MotherHairTexID)
+int32 UGeneticsManager::CalculateHairTexture(FName P1HairTexID, FName P2HairTexID)
 {
 	if (!HairTextureGeneticsTable) return 1;
 
-	FHairTextureGeneticData* FatherData = HairTextureGeneticsTable->FindRow<FHairTextureGeneticData>(FatherHairTexID, TEXT("Hair Texture Context"));
-	FHairTextureGeneticData* MotherData = HairTextureGeneticsTable->FindRow<FHairTextureGeneticData>(MotherHairTexID, TEXT("Hair Texture Context"));
+	FHairTextureGeneticData* P1Data = HairTextureGeneticsTable->FindRow<FHairTextureGeneticData>(P1HairTexID, TEXT("Hair Texture Context"));
+	FHairTextureGeneticData* P2Data = HairTextureGeneticsTable->FindRow<FHairTextureGeneticData>(P2HairTexID, TEXT("Hair Texture Context"));
 
-	if (FatherData && MotherData)
+	if (P1Data && P2Data)
 	{
 		// Determine hair texture range
-		float MinType = FMath::Min(FatherData->DominanceIndex, MotherData->DominanceIndex);
-		float MaxType = FMath::Max(FatherData->DominanceIndex, MotherData->DominanceIndex);
+		float MinType = FMath::Min(P1Data->DominanceIndex, P2Data->DominanceIndex);
+		float MaxType = FMath::Max(P1Data->DominanceIndex, P2Data->DominanceIndex);
 
 		// Favor curlier textures
 		const float CurlBias = 0.5f;
@@ -122,16 +122,16 @@ void UGeneticsManager::ApplyHairTextureGenetics(int32 ChildHairTexID)
 }
 
 // HAIR COLOR
-FName UGeneticsManager::CalculateHairColor(FName FatherHairColorID, FName MotherHairColorID)
+FName UGeneticsManager::CalculateHairColor(FName P1HairColorID, FName P2HairColorID)
 {
 	if (!HairColorGeneticsTable) return NAME_None;
 
-	FHairColorGeneticData* FatherData = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(FatherHairColorID, TEXT("Hair Color Context"));
-	FHairColorGeneticData* MotherData = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(MotherHairColorID, TEXT("Hair Color Context"));
+	FHairColorGeneticData* P1Data = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(P1HairColorID, TEXT("Hair Color Context"));
+	FHairColorGeneticData* P2Data = HairColorGeneticsTable->FindRow<FHairColorGeneticData>(P2HairColorID, TEXT("Hair Color Context"));
 
-	if (FatherData && MotherData)
+	if (P1Data && P2Data)
 	{
-		return SelectDominantPhenotype(FatherHairColorID, FatherData->DominanceIndex, MotherHairColorID, MotherData->DominanceIndex);
+		return SelectDominantPhenotype(P1HairColorID, P1Data->DominanceIndex, P2HairColorID, P2Data->DominanceIndex);
 	}
 	return NAME_None;
 }

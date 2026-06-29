@@ -114,16 +114,16 @@ public:
 
 	// -- Calculation methods --
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
-	FName CalculateEyeColor(FName FatherPhenotype, FName MotherPhenotype);
+	FName CalculateEyeColor(FName P1Phenotype, FName P2Phenotype);
 
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
-	float CalculateSkinTone(FName FatherPhenotype, FName MotherPhenotype);
+	float CalculateSkinTone(FName P1Phenotype, FName P2Phenotype);
 
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
-	int32 CalculateHairTexture(FName FatherPhenotype, FName MotherPhenotype);
+	int32 CalculateHairTexture(FName P1Phenotype, FName P2Phenotype);
 
 	UFUNCTION(BlueprintCallable, Category = "Genetics")
-	FName CalculateHairColor(FName FatherPhenotype, FName MotherPhenotype);
+	FName CalculateHairColor(FName P1Phenotype, FName P2Phenotype);
 
 	// -- Aplication methods --
 	UFUNCTION(BlueprintCallable, Category="Genetics")
