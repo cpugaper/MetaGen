@@ -16,7 +16,7 @@ The project serves as an interactive simulation template, featuring 6 pre-config
 
 ## Developer Guide: Integrating New Parent Characters
 
-To extend the system and add your own custom parental models, access the production pipeline template and detailed documentation [here](https://drive.google.com/drive/folders/1hj6qT3SajAVpVFESHT1llWZMrvKYUuVQ?dmr=1&ec=wgc-drive-globalnav-goto).
+To extend the system and add your own custom parental models, access the production pipeline template and detailed documentation [here](https://drive.google.com/drive/folders/1ggLajM1lqFQsrz0tSNBM85HbzWD1feBx?usp=drive_link).
 
 The package includes the source production file (`GeneticChild_Template.blend`) and the full step-by-step documentation covering the following implementation pipeline:
 
